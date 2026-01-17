@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+
+import requests
+import subprocess
+import time
+import json
+import os
+import logging
+from datetime import datetime
+import sys
+
+# =========================
+# CONFIGURATION
+# =========================
+
+API_KEY = "YourOpenWeatherAPICode"  # Must be in quotes
+CITY = "YourCity"
+COUNTRY_CODE = "YourCountryCode"
+
+UPDATE_INTERVAL_SECONDS = 1800  # Normal run interval
+EXTREME_HEAT_CELSIUS = 35.0
+TORRENTIAL_RAIN_MM_PER_HOUR = 4.0
+
+# Set True to skip executing commands (dry run)
+DRY_RUN = False
+TEST_MODE_DELAY = 5
+
+# =========================
+# LOGGING SETUP
+# =========================
+
+import logging
+import os
+from logging.handlers import RotatingFileHandler
+
+# =========================
+# LOGGING CONFIGURATION
+# =========================
+
+# Folder where the script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Log file path
+LOG_FILE = os.path.join(SCRIPT_DIR, "weather_app.log")
+
+# RotatingFileHandler configuration:
+# - maxBytes: maximum size of a single log file (0.5 MB here)
+# - backupCount: how many backup log files to keep (1 here)
+handler = RotatingFileHandler(LOG_FILE, maxBytes=1*512*1024, backupCount=1, encoding='utf-8')
+
+# Logging format
+formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
+handler.setFormatter(formatter)
+
+# Configure root logger
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[handler]
+)
+
+logging.info("=== Weather App Logging Started ===")
+
+# =========================
+# LOAD COMMANDS FROM JSON
+# =========================
+
+def load_commands():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    commands_path = os.path.join(script_dir, "commands.json")
+    with open(commands_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+try:
+    COMMANDS = load_commands()
+except Exception as e:
+    logging.error(f"Failed to load commands.json: {e}")
+    COMMANDS = {}
+
+# =========================
+# WEATHER CLASSIFICATION
+# =========================
+
+def classify_weather(weather_data):
+    main_condition = weather_data["weather"][0]["main"].lower()
+    temperature = weather_data["main"]["temp"]
+    rain_1h = weather_data.get("rain", {}).get("1h", 0.0)
+
+    if temperature >= EXTREME_HEAT_CELSIUS:
+        return "extreme_heat"
+    if rain_1h >= TORRENTIAL_RAIN_MM_PER_HOUR:
+        return "torrential_rain"
+    if main_condition == "snow":
+        return "snowy"
+    if main_condition in {"rain", "drizzle", "thunderstorm"}:
+        return "rainy"
+    if main_condition == "clear":
+        return "sunny"
+    if main_condition in {"clouds", "mist", "haze", "fog", "smoke"}:
+        return "cloudy"
+    return "cloudy"
+
+# =========================
+# COMMAND EXECUTION
+# =========================
+
+def run_commands(weather_type):
+    commands = COMMANDS.get(weather_type)
+    if not commands:
+        logging.warning(f"No commands defined for '{weather_type}'")
+        return
+
+    for cmd in commands:
+        logging.info(f"Executing command for '{weather_type}': {cmd}")
+        if not DRY_RUN:
+            subprocess.run(cmd, shell=True, check=False)
+
+# =========================
+# WEATHER FETCHING
+# =========================
+
+def get_weather():
+    url = (
+        "https://api.openweathermap.org/data/2.5/weather"
+        f"?q={"YourCity"},{"YourCountryCode"}&units=metric&appid={"YourOpenWeatherAPICode"}"
+    )
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    return response.json()
+
+# =========================
+# TEST MODE
+# =========================
+
+TEST_WEATHER_DATA = [
+    {"name": "Sunny", "data": {"weather": [{"main": "Clear"}], "main": {"temp": 25}, "rain": {}}},
+    {"name": "Cloudy", "data": {"weather": [{"main": "Clouds"}], "main": {"temp": 20}, "rain": {}}},
+    {"name": "Rainy", "data": {"weather": [{"main": "Rain"}], "main": {"temp": 18}, "rain": {"1h": 5}}}, 
+    {"name": "Snowy", "data": {"weather": [{"main": "Snow"}], "main": {"temp": -2}, "rain": {}}},
+    {"name": "Torrential Rain", "data": {"weather": [{"main": "Rain"}], "main": {"temp": 18}, "rain": {"1h": 35}}},
+    {"name": "Extreme Heat", "data": {"weather": [{"main": "Clear"}], "main": {"temp": 42}, "rain": {}}}
+]
+
+def test_mode():
+    logging.info("=== TEST MODE START ===")
+    for scenario in TEST_WEATHER_DATA:
+        name = scenario["name"]
+        data = scenario["data"]
+        weather_type = classify_weather(data)
+        logging.info(f"Simulated scenario: {name} → classified as '{weather_type}'")
+        run_commands(weather_type)
+        logging.info("-" * 50)
+        
+        # Delay before next scenario
+        time.sleep(TEST_MODE_DELAY)
+
+    logging.info("=== TEST MODE END ===")
+
+# =========================
+# MAIN LOOP
+# =========================
+
+def main():
+    # Command-line override for test mode
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "test":
+        test_mode()
+        return
+
+    logging.info("Weather automation app started")
+    while True:
+        try:
+            weather_data = get_weather()
+            weather_type = classify_weather(weather_data)
+            logging.info(f"Weather classified as: {weather_type}")
+            run_commands(weather_type)
+        except Exception as e:
+            logging.error(f"Weather update failed: {e}")
+        time.sleep(UPDATE_INTERVAL_SECONDS)
+
+# =========================
+# ENTRY POINT
+# =========================
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        logging.error(f"Fatal error: {e}")
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")

@@ -1,0 +1,19 @@
+@echo off
+:: ==========================================
+:: Silent launcher for Weather App Python script
+:: ==========================================
+
+:: Full path to pythonw.exe (silent mode) (path may not be accurate, look in appdata\local for python folder)
+set PYTHON_PATH="C:\Users\YourName\AppData\Local\Programs\Python\Python310\pythonw.exe"
+
+:: Full path to the weather app folder
+set SCRIPT_PATH="C:\Users\YourName\Documents\WeatherApp\weather_app.py"
+
+:: Change directory to the script folder (important for commands.json)
+cd /d "C:\Users\YourName\Documents\WeatherApp"
+
+:: Launch the script silently
+start "" %PYTHON_PATH% %SCRIPT_PATH% test
+
+:: Exit the batch file
+exit

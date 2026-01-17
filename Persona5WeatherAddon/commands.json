@@ -1,0 +1,25 @@
+{
+  "extreme_heat": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":0,\"hot\":false})~END"
+  ],
+
+  "sunny": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":0,\"hot\":true})~END"
+  ],
+
+  "cloudy": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":1})~END"
+  ],
+
+  "rainy": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":2,\"torrentialrainlabel\":true})~END"
+  ],
+
+  "torrential_rain": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":2,\"torrentialrainlabel\":false})~END"
+  ],
+
+  "snowy": [
+    "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\wallpaper_engine\\wallpaper64.exe\" -control applyProperties -properties Raw~({\"weather\":3})~END"
+  ]
+}
