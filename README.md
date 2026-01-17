@@ -21,18 +21,17 @@ The code is a framework and requires the addition of a personal (but free) open 
      <br>Now if set up correctly with the wallpaper running, openign silent_test.bat will cause the wallpaper to cycle through the 6 weather states every 5 seconds. If that is done then activating the other silent.bat will cause it to sync to your real world weather,
 
 10. (Optional) Add to Task Scheduler
-Open Task Scheduler → Create Task.
-General Tab:
-Run whether user is logged on or not
-Run with highest privileges
-Triggers Tab:
-At log on
-Actions Tab:
-Program/script: "C:\Users\<YourName>\Documents\Persona5WeatherAddon\run_weather_app_silent.bat"
-Start in: "C:\Users\<YourName>\Documents\Persona5WeatherAddon"
-Enable All Tasks History for logs.
-
-Save and run task manually once to verify.
+<br>Open Task Scheduler → Create Task.
+<br>General Tab:
+<br>Run whether user is logged on or not
+<br>Run with highest privileges
+<br>Triggers Tab:
+<br>At log on
+<br>Actions Tab:
+<br>Program/script: "C:\Users\<YourName>\Documents\Persona5WeatherAddon\run_weather_app_silent.bat"
+<br>Start in: "C:\Users\<YourName>\Documents\Persona5WeatherAddon"
+<br>Enable All Tasks History for logs.
+<br>Save and run task manually once to verify.
 ###### Troubleshooting
 1. Ensure all file paths are correctly altered
 2. Ensure all addition of API, countrycode and city are surrounded by "quotes"
