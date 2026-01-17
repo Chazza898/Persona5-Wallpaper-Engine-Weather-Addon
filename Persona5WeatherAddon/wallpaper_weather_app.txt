@@ -8,21 +8,20 @@ import os
 import logging
 from datetime import datetime
 import sys
-import msvcrt
-import signal
 
 # =========================
 # CONFIGURATION
 # =========================
 
-API_KEY = "YourAPIkey"
+API_KEY = "YourAPICode"  # Must be in quotes
 CITY = "YourCity"
 COUNTRY_CODE = "YourCountryCode"
 
-UPDATE_INTERVAL_SECONDS = 300
+UPDATE_INTERVAL_SECONDS = 30  # Frequency of connections to open weathers servers
 EXTREME_HEAT_CELSIUS = 35.0
 TORRENTIAL_RAIN_MM_PER_HOUR = 4.0
 
+# Set True to skip executing commands (dry run)
 DRY_RUN = False
 TEST_MODE_DELAY = 5
 
@@ -30,7 +29,13 @@ TEST_MODE_DELAY = 5
 # LOGGING SETUP
 # =========================
 
+import logging
+import os
 from logging.handlers import RotatingFileHandler
+
+# =========================
+# LOGGING CONFIGURATION
+# =========================
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(SCRIPT_DIR, "weather_app.log")
@@ -53,37 +58,12 @@ logging.basicConfig(
 logging.info("=== Weather App Logging Started ===")
 
 # =========================
-# SELF-REPLACING LOCK
-# =========================
-
-LOCK_FILE = os.path.join(SCRIPT_DIR, "weather_app.lock")
-
-def acquire_or_replace_lock():
-    if os.path.exists(LOCK_FILE):
-        try:
-            with open(LOCK_FILE, "r") as f:
-                old_pid = int(f.read().strip())
-            logging.info(f"Existing instance detected (PID {old_pid}), terminating")
-            os.kill(old_pid, signal.SIGTERM)
-            time.sleep(2)
-        except Exception as e:
-            logging.warning(f"Failed to terminate old instance: {e}")
-
-    lock_file = open(LOCK_FILE, "w")
-    try:
-        msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
-        lock_file.write(str(os.getpid()))
-        lock_file.flush()
-        return lock_file
-    except OSError:
-        return None
-
-# =========================
 # LOAD COMMANDS FROM JSON
 # =========================
 
 def load_commands():
-    commands_path = os.path.join(SCRIPT_DIR, "commands.json")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    commands_path = os.path.join(script_dir, "commands.json")
     with open(commands_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
@@ -160,8 +140,12 @@ TEST_WEATHER_DATA = [
 def test_mode():
     logging.info("=== TEST MODE START ===")
     for scenario in TEST_WEATHER_DATA:
-        weather_type = classify_weather(scenario["data"])
+        name = scenario["name"]
+        data = scenario["data"]
+        weather_type = classify_weather(data)
+        logging.info(f"Simulated scenario: {name} → classified as '{weather_type}'")
         run_commands(weather_type)
+        logging.info("-" * 50)
         time.sleep(TEST_MODE_DELAY)
     logging.info("=== TEST MODE END ===")
 
@@ -176,6 +160,7 @@ def main():
 
     logging.info("Weather automation app started")
 
+    # ---- STARTUP RE-APPLICATION FIX ----
     try:
         weather_data = get_weather()
         weather_type = classify_weather(weather_data)
@@ -183,14 +168,20 @@ def main():
         run_commands(weather_type)
     except Exception as e:
         logging.error(f"Startup weather application failed: {e}")
+    # -----------------------------------
 
     while True:
         try:
             weather_data = get_weather()
             weather_type = classify_weather(weather_data)
+            logging.info(f"Weather classified as: {weather_type}")
+
+            # ALWAYS re-apply commands (intentional)
             run_commands(weather_type)
+
         except Exception as e:
             logging.error(f"Weather update failed: {e}")
+
         time.sleep(UPDATE_INTERVAL_SECONDS)
 
 # =========================
@@ -198,10 +189,6 @@ def main():
 # =========================
 
 if __name__ == "__main__":
-    lock_handle = acquire_or_replace_lock()
-    if not lock_handle:
-        sys.exit(0)
-
     try:
         main()
     except Exception as e:
