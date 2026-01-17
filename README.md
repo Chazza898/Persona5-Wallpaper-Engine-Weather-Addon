@@ -5,6 +5,7 @@ I don't plan on adding any additional functionality to this app, but if somethin
 
 The code is a framework and requires the addition of a personal (but free) open weather API code and the adjustment of the directories in the files so that the programs can be run, instructions provided below. To have it operate on launch windows task scheduler is used.
 
+<br>**AI Disclaimer**: The base of this code was written using the help of Chatgpt with multiple multiply revisions, later given a final edit by me, a human.
 ##### Set up
 1. Prerequisites
  <br> Before starting, ensure you have:
@@ -14,7 +15,7 @@ The code is a framework and requires the addition of a personal (but free) open 
      <br>Open Command Prompt in the project folder (use command: cd C:\Users\YourName\Documents\Persona5WeatherAddon) and run:
      <br> python -m pip install requests
 4. Edit the Script Configuration
-    <br> Open wallpaper_weather_app.txt and replace the openweather API key, city and countrycode at the top of the file . Also under the heading WEATHER FETCHING, within the code you must replace the 3 as well (all additions require enclosement by "quotes"). After doing this rename the script to a .py file
+    <br> Open wallpaper_weather_app.txt and replace the openweather API key, city and countrycode at the top of the file (Ensuring all 3 are enclosed by "quotes"). After doing this rename the script to a .py file
 5. Edit the run.bats
      <br>Open both the silent and silent_test txt files and edit the file paths listed to lead to the python.exe, wallpaper_weather_app.py, and to the Persona5WeatherAddon folders path. Save and close, then rename both files to be .bat files.
 6. Testing
@@ -41,9 +42,9 @@ Save and run task manually once to verify.
 <br> <br> Restart computer to verify the automation functions. If it does, then don't open the .bat files manually any more, or multiple instances will run at once, checking weather data more than required.
 
 ##### Notes
-I have the script set to check for weather updates every 30 seconds, this is in order to quickly correct any changes to the wallpapers settings by other sources (I noticed if the pc went to sleep then when powered on the weather would reset to default until the sript updated). For most PCs this will have essentially no impact (My 5600x sees a 1% spike in usage from python) however if you do not care for the updates to be so frequent or if you do not wish to waste laptop charge etc you can change the frequence in the wallpaper_weather_app.py under update interval.
+I have the script set to check for weather updates every 30 seconds, this is in order to quickly correct any changes to the wallpapers settings by other sources (I noticed if the pc went to sleep then when powered on the weather would reset to default until the sript updated). For most PCs this will have essentially no impact (My 5600x sees a 1% spike in usage from python) however if you do not care for the updates to be so frequent or if you do not wish to waste laptop charge etc you can change the frequency in the wallpaper_weather_app.py under update interval.
 <br><br>
-Also ensure that wallpaper engine is set to pause not stop wallpapers on monitor sleep or other application maximised, or the weather will reset everytime you displays turn off requiring the waiting of the update interval to reset.
+Also ensure that wallpaper engine is set to pause not stop wallpapers on monitor sleep or other any other option, or the weather will reset everytime you displays turn off requiring the waiting of the update interval to reset.
 
 ###### Troubleshooting
 1. Ensure all file paths are correctly altered
