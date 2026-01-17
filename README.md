@@ -39,8 +39,12 @@ The code is a framework and requires the addition of a personal (but free) open 
 <br> Enable All Tasks History for logs.
 Save and run task manually once to verify.
 <br> <br> Restart computer to verify the automation functions. If it does, then don't open the .bat files manually any more, or multiple instances will run at once, checking weather data more than required.
-11. (Optional) Automate from sleep weather application
-<br> Repeat all above steps except under the trigger tab use the trigger; On event; Log=System, Source=Power-Troubleshooter, ID=1
+
+##### Notes
+I have the script set to check for weather updates every 30 seconds, this is in order to quickly correct any changes to the wallpapers settings by other sources (I noticed if the pc went to sleep then when powered on the weather would reset to default until the sript updated). For most PCs this will have essentially no impact (My 5600x sees a 1% spike in usage from python) however if you do not care for the updates to be so frequent or if you do not wish to waste laptop charge etc you can change the frequence in the wallpaper_weather_app.py under update interval.
+<br>
+Also ensure that wallpaper engine is set to pause not stop wallpapers on monitor sleep or other application maximised, or the weather will reset everytime you displays turn off requiring the waiting of the update interval to reset.
+
 ###### Troubleshooting
 1. Ensure all file paths are correctly altered
 2. Ensure all addition of API, countrycode and city are surrounded by "quotes"
