@@ -160,20 +160,34 @@ def test_mode():
 # =========================
 
 def main():
-    # Command-line override for test mode
     if len(sys.argv) > 1 and sys.argv[1].lower() == "test":
         test_mode()
         return
 
     logging.info("Weather automation app started")
+
+    # ---- STARTUP RE-APPLICATION FIX ----
+    try:
+        weather_data = get_weather()
+        weather_type = classify_weather(weather_data)
+        logging.info(f"Startup weather classified as: {weather_type}")
+        run_commands(weather_type)
+    except Exception as e:
+        logging.error(f"Startup weather application failed: {e}")
+    # -----------------------------------
+
     while True:
         try:
             weather_data = get_weather()
             weather_type = classify_weather(weather_data)
             logging.info(f"Weather classified as: {weather_type}")
+
+            # ALWAYS re-apply commands (intentional)
             run_commands(weather_type)
+
         except Exception as e:
             logging.error(f"Weather update failed: {e}")
+
         time.sleep(UPDATE_INTERVAL_SECONDS)
 
 # =========================
@@ -188,3 +202,4 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         input("Press Enter to exit...")
+
