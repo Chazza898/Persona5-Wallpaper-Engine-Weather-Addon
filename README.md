@@ -11,7 +11,7 @@ The code is a framework and requires the addition of a personal (but free) open 
     <br>Python installed (Python 3.10+ recommended)
 2. Download the Files and Place into your documents folder
 3. Install Required Python Modules
-     <br>Open Command Prompt in the project folder (use command cd C:\Users\YourName\Documents\Persona5WeatherAddon) and run:
+     <br>Open Command Prompt in the project folder (use command: cd C:\Users\YourName\Documents\Persona5WeatherAddon) and run:
      <br> python -m pip install requests
 4. Edit the Script Configuration
     <br> Open wallpaper_weather_app.txt and replace the openweather API key, city and countrycode at the top of the file . Also under the heading WEATHER FETCHING, within the code you must replace the 3 as well (all additions require enclosement by "quotes"). After doing this rename the script to a .py file
