@@ -5,7 +5,7 @@ I don't plan on adding any additional functionality to this app, but if somethin
 
 The code is a framework and requires the addition of a personal (but free) open weather API code and the adjustment of the directories in the files so that the programs can be run, instructions provided below. To have it operate on launch windows task scheduler is used.
 
-<br>**AI Disclaimer**: The base of this code was written using the help of Chatgpt with multiple multiply revisions, later given a final edit by me, a human.
+<br>**AI Disclaimer**: The base of this code was written using the help of Chatgpt with multiple revisions, later given a final edit by me, a human.
 ##### Set up
 1. Prerequisites
  <br> Before starting, ensure you have:
