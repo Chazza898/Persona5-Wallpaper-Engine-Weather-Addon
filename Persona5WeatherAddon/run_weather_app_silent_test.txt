@@ -7,13 +7,14 @@
 set PYTHON_PATH="C:\Users\YourName\AppData\Local\Programs\Python\Python310\pythonw.exe"
 
 :: Full path to the weather app folder
-set SCRIPT_PATH="C:\Users\YourName\Documents\WeatherApp\weather_app.py"
+set SCRIPT_PATH="C:\Users\YourName\Documents\Persona5WeatherAddon\wallpaper_weather_app.py"
 
 :: Change directory to the script folder (important for commands.json)
-cd /d "C:\Users\YourName\Documents\WeatherApp"
+cd /d "C:\Users\YourName\Documents\Persona5WeatherAddon"
 
 :: Launch the script silently
 start "" %PYTHON_PATH% %SCRIPT_PATH% test
 
 :: Exit the batch file
 exit
+
