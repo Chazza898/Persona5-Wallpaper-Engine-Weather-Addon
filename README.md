@@ -39,7 +39,8 @@ The code is a framework and requires the addition of a personal (but free) open 
 <br> Enable All Tasks History for logs.
 Save and run task manually once to verify.
 <br> <br> Restart computer to verify the automation functions. If it does, then don't open the .bat files manually any more, or multiple instances will run at once, checking weather data more than required.
-
+11. (Optional) Automate from sleep weather application
+<br> Repeat all above steps except under the trigger tab use the trigger; On event; Log=System, Source=Power-Troubleshooter, ID=1
 ###### Troubleshooting
 1. Ensure all file paths are correctly altered
 2. Ensure all addition of API, countrycode and city are surrounded by "quotes"
