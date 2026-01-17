@@ -18,7 +18,7 @@ The code is a framework and requires the addition of a personal (but free) open 
 5. Edit the run.bats
      <br>Open both the silent and silent_test txt files and edit the file paths listed to lead to the python.exe, wallpaper_weather_app.py, and to the Persona5WeatherAddon folders path. Save and close, then rename both files to be .bat files.
 6. Testing
-     <br>Now if set up correctly with the wallpaper running, openign silent_test.bat will cause the wallpaper to cycle through the 6 weather states every 5 seconds. If that is done then activating the other silent.bat will cause it to sync to your real world weather,
+     <br>Now if set up correctly with the wallpaper running, opening silent_test.bat will cause the wallpaper to cycle through the 6 weather states every 5 seconds. If that is done then activating the other silent.bat will cause it to sync to your real world weather,
 
 10. (Optional) Automate via Task Scheduler
 <br>Open Task Scheduler → Create Task.
