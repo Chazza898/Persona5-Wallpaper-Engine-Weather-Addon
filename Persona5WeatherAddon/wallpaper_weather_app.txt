@@ -8,34 +8,36 @@ import os
 import logging
 from datetime import datetime
 import sys
+import msvcrt
+import signal
+import psutil  # Added to wait for Wallpaper Engine
 
 # =========================
 # CONFIGURATION
 # =========================
 
-API_KEY = "YourAPICode"  # Must be in quotes
+API_KEY = "YourAPIKey"
 CITY = "YourCity"
 COUNTRY_CODE = "YourCountryCode"
 
-UPDATE_INTERVAL_SECONDS = 30  # Frequency of connections to open weathers servers
+UPDATE_INTERVAL_SECONDS = 300
 EXTREME_HEAT_CELSIUS = 35.0
 TORRENTIAL_RAIN_MM_PER_HOUR = 4.0
 
-# Set True to skip executing commands (dry run)
 DRY_RUN = False
 TEST_MODE_DELAY = 5
+WALLPAPER_COMMAND_RETRIES = 1
+WALLPAPER_COMMAND_DELAY = 5  # seconds between retry attempts
+
+# Wait for Wallpaper Engine indefinitely, log if taking too long
+MAX_WAIT_WARNING_SECONDS = 120  # Warn if not detected after 2 minutes
+CHECK_INTERVAL = 5  # seconds between checks
 
 # =========================
 # LOGGING SETUP
 # =========================
 
-import logging
-import os
 from logging.handlers import RotatingFileHandler
-
-# =========================
-# LOGGING CONFIGURATION
-# =========================
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(SCRIPT_DIR, "weather_app.log")
@@ -46,7 +48,6 @@ handler = RotatingFileHandler(
     backupCount=1,
     encoding="utf-8"
 )
-
 formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 handler.setFormatter(formatter)
 
@@ -54,16 +55,58 @@ logging.basicConfig(
     level=logging.INFO,
     handlers=[handler]
 )
-
 logging.info("=== Weather App Logging Started ===")
+
+# =========================
+# SELF-REPLACING LOCK
+# =========================
+
+LOCK_DIR = os.path.join(os.environ["USERPROFILE"], "AppData", "Local", "WeatherAppLock")
+os.makedirs(LOCK_DIR, exist_ok=True)
+LOCK_FILE = os.path.join(LOCK_DIR, "weather_app.lock")
+
+def acquire_or_replace_lock():
+    if os.path.exists(LOCK_FILE):
+        try:
+            with open(LOCK_FILE, "r") as f:
+                old_pid = int(f.read().strip())
+            logging.info(f"Existing instance detected (PID {old_pid}), terminating")
+
+            try:
+                old_proc = psutil.Process(old_pid)
+                old_proc.terminate()
+                old_proc.wait(timeout=5)
+                logging.info(f"Previous instance (PID {old_pid}) terminated successfully")
+            except psutil.NoSuchProcess:
+                logging.info("Previous instance already exited")
+            except psutil.TimeoutExpired:
+                logging.warning("Previous instance did not terminate in time, killing")
+                old_proc.kill()
+            except Exception as e:
+                logging.warning(f"Failed to terminate old instance: {e}")
+
+            time.sleep(2)
+
+        except Exception as e:
+            logging.warning(f"Failed to read or process lock file: {e}")
+
+    # Open lock file in user-local folder and acquire exclusive lock
+    try:
+        lock_file = open(LOCK_FILE, "w")
+        msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+        lock_file.write(str(os.getpid()))
+        lock_file.flush()
+        return lock_file
+    except Exception as e:
+        logging.error(f"Failed to acquire lock: {e}")
+        return None
 
 # =========================
 # LOAD COMMANDS FROM JSON
 # =========================
 
 def load_commands():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    commands_path = os.path.join(script_dir, "commands.json")
+    commands_path = os.path.join(SCRIPT_DIR, "commands.json")
     with open(commands_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
@@ -100,16 +143,18 @@ def classify_weather(weather_data):
 # COMMAND EXECUTION
 # =========================
 
-def run_commands(weather_type):
+def run_commands(weather_type, retries=WALLPAPER_COMMAND_RETRIES, delay=WALLPAPER_COMMAND_DELAY):
     commands = COMMANDS.get(weather_type)
     if not commands:
         logging.warning(f"No commands defined for '{weather_type}'")
         return
 
     for cmd in commands:
-        logging.info(f"Executing command for '{weather_type}': {cmd}")
-        if not DRY_RUN:
-            subprocess.run(cmd, shell=True, check=False)
+        for attempt in range(1, retries + 1):
+            logging.info(f"Executing command for '{weather_type}' (attempt {attempt}): {cmd}")
+            if not DRY_RUN:
+                subprocess.run(cmd, shell=True, check=False)
+            time.sleep(delay)
 
 # =========================
 # WEATHER FETCHING
@@ -125,13 +170,41 @@ def get_weather():
     return response.json()
 
 # =========================
+# WAIT FOR WALLPAPER ENGINE
+# =========================
+
+def wait_for_wallpaper_engine():
+    logging.info("Waiting for Wallpaper Engine to start...")
+    start_time = time.time()
+    warning_logged = False
+
+    while True:
+        try:
+            for proc in psutil.process_iter(["name"]):
+                if "wallpaper64.exe" in proc.info["name"].lower():
+                    logging.info("Wallpaper Engine detected.")
+                    return True
+        except Exception as e:
+            logging.warning(f"Error checking processes: {e}")
+
+        elapsed = time.time() - start_time
+        if not warning_logged and elapsed >= MAX_WAIT_WARNING_SECONDS:
+            logging.warning(
+                f"Wallpaper Engine has not started after {MAX_WAIT_WARNING_SECONDS} seconds. "
+                "Continuing to wait..."
+            )
+            warning_logged = True
+
+        time.sleep(CHECK_INTERVAL)
+
+# =========================
 # TEST MODE
 # =========================
 
 TEST_WEATHER_DATA = [
     {"name": "Sunny", "data": {"weather": [{"main": "Clear"}], "main": {"temp": 25}, "rain": {}}},
     {"name": "Cloudy", "data": {"weather": [{"main": "Clouds"}], "main": {"temp": 20}, "rain": {}}},
-    {"name": "Rainy", "data": {"weather": [{"main": "Rain"}], "main": {"temp": 18}, "rain": {"1h": 5}}},
+    {"name": "Rainy", "data": {"weather": [{"main": "Rain"}], "main": {"temp": 18}, "rain": {"1h": 3}}},
     {"name": "Snowy", "data": {"weather": [{"main": "Snow"}], "main": {"temp": -2}, "rain": {}}},
     {"name": "Torrential Rain", "data": {"weather": [{"main": "Rain"}], "main": {"temp": 18}, "rain": {"1h": 35}}},
     {"name": "Extreme Heat", "data": {"weather": [{"main": "Clear"}], "main": {"temp": 42}, "rain": {}}}
@@ -139,15 +212,44 @@ TEST_WEATHER_DATA = [
 
 def test_mode():
     logging.info("=== TEST MODE START ===")
+
     for scenario in TEST_WEATHER_DATA:
         name = scenario["name"]
         data = scenario["data"]
-        weather_type = classify_weather(data)
-        logging.info(f"Simulated scenario: {name} → classified as '{weather_type}'")
-        run_commands(weather_type)
+
+        logging.info(f"Testing scenario: {name}")
+
+        try:
+            weather_type = classify_weather(data)
+            logging.info(f"Classified as: {weather_type}")
+
+            # Run test commands ONCE, no retries
+            commands = COMMANDS.get(weather_type, [])
+            if not commands:
+                logging.warning(f"No commands defined for '{weather_type}'")
+            else:
+                for cmd in commands:
+                    logging.info(f"Executing test command: {cmd}")
+                    if not DRY_RUN:
+                        subprocess.run(cmd, shell=True, check=False)
+
+        except Exception as e:
+            logging.error(f"Test scenario failed ({name}): {e}")
+
         logging.info("-" * 50)
         time.sleep(TEST_MODE_DELAY)
+
     logging.info("=== TEST MODE END ===")
+
+    # Reset wallpaper to real weather after test mode
+    try:
+        logging.info("Resetting wallpaper to current real weather...")
+        real_weather = get_weather()
+        real_weather_type = classify_weather(real_weather)
+        logging.info(f"Current weather classified as: {real_weather_type}")
+        run_commands(real_weather_type)
+    except Exception as e:
+        logging.error(f"Failed to reset wallpaper to real weather: {e}")
 
 # =========================
 # MAIN LOOP
@@ -160,7 +262,9 @@ def main():
 
     logging.info("Weather automation app started")
 
-    # ---- STARTUP RE-APPLICATION FIX ----
+    # Wait for Wallpaper Engine before applying commands
+    wait_for_wallpaper_engine()
+
     try:
         weather_data = get_weather()
         weather_type = classify_weather(weather_data)
@@ -168,20 +272,14 @@ def main():
         run_commands(weather_type)
     except Exception as e:
         logging.error(f"Startup weather application failed: {e}")
-    # -----------------------------------
 
     while True:
         try:
             weather_data = get_weather()
             weather_type = classify_weather(weather_data)
-            logging.info(f"Weather classified as: {weather_type}")
-
-            # ALWAYS re-apply commands (intentional)
             run_commands(weather_type)
-
         except Exception as e:
             logging.error(f"Weather update failed: {e}")
-
         time.sleep(UPDATE_INTERVAL_SECONDS)
 
 # =========================
@@ -189,10 +287,25 @@ def main():
 # =========================
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        logging.error(f"Fatal error: {e}")
-        import traceback
-        traceback.print_exc()
-        input("Press Enter to exit...")
+    # If running test mode, skip the lock to allow simultaneous testing
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "test":
+        try:
+            main()
+        except Exception as e:
+            logging.error(f"Fatal error: {e}")
+            import traceback
+            traceback.print_exc()
+            input("Press Enter to exit...")
+    else:
+        lock_handle = acquire_or_replace_lock()
+        if not lock_handle:
+            sys.exit(0)
+
+        try:
+            main()
+        except Exception as e:
+            logging.error(f"Fatal error: {e}")
+            import traceback
+            traceback.print_exc()
+            input("Press Enter to exit...")
+
