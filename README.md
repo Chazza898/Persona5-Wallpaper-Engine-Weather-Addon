@@ -12,8 +12,8 @@ The code is a framework and requires the addition of a personal (but free) open 
     <br>Python installed (Python 3.10+ recommended)
 2. Download the Files and Place into your documents folder
 3. Install Required Python Modules
-     <br>Open Command Prompt in the project folder (use command: cd C:\Users\YourName\Documents\Persona5WeatherAddon) and run:
-     <br> python -m pip install requests
+     <br>Open Command Prompt in the project folder (use command: cd /d C:\Users\YourName\Documents\Persona5WeatherAddon) and run:
+     <br> python -m pip install requests  <br> python -m pip install psutil
 4. Edit the Script Configuration
     <br> Open wallpaper_weather_app.txt and replace the openweather API key, city and countrycode at the top of the file (Ensuring all 3 are enclosed by "quotes"). After doing this rename the script to a .py file
 5. Edit the run.bats
@@ -42,9 +42,7 @@ Save and run task manually once to verify.
 <br> <br> Restart computer to verify the automation functions. If it does, then don't open the .bat files manually any more, or multiple instances will run at once, checking weather data more than required.
 
 ##### Notes
-I have the script set to check for weather updates every 30 seconds, this is in order to quickly correct any changes to the wallpapers settings by other sources (I noticed if the pc went to sleep then when powered on the weather would reset to default until the sript updated). For most PCs this will have essentially no impact (My 5600x sees a 1% spike in usage from python) however if you do not care for the updates to be so frequent or if you do not wish to waste laptop charge etc you can change the frequency in the wallpaper_weather_app.py under update interval.
-<br><br>
-Also ensure that wallpaper engine is set to pause not stop wallpapers on monitor sleep or other any other option, or the weather will reset everytime you displays turn off requiring the waiting of the update interval to reset.
+Ensure that wallpaper engine is set to pause not stop wallpapers on monitor sleep or other any other option, or the weather will reset everytime you displays turn off requiring the waiting of the update interval to reset.
 
 ###### Troubleshooting
 1. Ensure all file paths are correctly altered
