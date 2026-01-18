@@ -1,5 +1,5 @@
 # Persona5-Wallpaper-Engine-Weather-Addon
-An addon that provides real world weather synconisation to the Real time Persona 5 Tokyo Transition screen + Weather wallpaper for wallpaper engine (https://steamcommunity.com/sharedfiles/filedetails/?id=2955378002). This app has 6 weather states; Sunny, Heatwave, Rain, Torrential Rain, Cloudy and Snow. The requirements for Heatwave and Torrential rain can be adjusted in the apps code. The app also automaticallty creates a log, and deletes old logs after the total size taken up is 1 MB.
+A windows only addon that provides real world weather synconisation to the Real time Persona 5 Tokyo Transition screen + Weather wallpaper for wallpaper engine (https://steamcommunity.com/sharedfiles/filedetails/?id=2955378002). This app has 6 weather states; Sunny, Heatwave, Rain, Torrential Rain, Cloudy and Snow. The requirements for Heatwave and Torrential rain can be adjusted in the apps code. The app also automaticallty creates a log, and deletes old logs after the total size taken up is 1 MB.
 
 I don't plan on adding any additional functionality to this app, but if something is broken, let me know.
 
